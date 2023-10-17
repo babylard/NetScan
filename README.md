@@ -6,7 +6,8 @@ To begin, input the IP of the router you would like to scan for connected device
 # Dependencies
 You may require WinPcap, Npcap, or other Packet Capturing software for the program to work properly. I highly reccomend Npcap over WinPcap, as WinPcap has ceased development a very long time ago. But if you are unable to get it to work with Npcap, WinPcap will work just fine if you have to. 
 
-For more information on vunrebilities of using WinPcap you can visit their website. If you're using macOS, then NetScan may work just fine out of the box as is. But if not I reccomend using Nmap.
+For more information on vunrebilities of using WinPcap you can visit their website. 
+If you're using macOS, then NetScan may work just fine out of the box as is. But if not I reccomend using Nmap.
 
 # Packet Capturing software Downloads
 Npcap: https://npcap.com/#download
