@@ -1,6 +1,10 @@
 # NetScan
 A lightweight Network scanner which lists IPs and MAC Addresses of all devices on a specified network.
 
+GUI version:
+![image](https://github.com/babylard/NetScan/assets/75695872/e55ec9a1-9570-4570-9b43-06f1ff43c7de)
+
+Terminal version:
 ![Blur](https://github.com/babylard/NetScan/assets/75695872/3ab0bdab-5e68-4040-bb49-689301dbe542)
 
 To begin, input the IP of the router you would like to scan for connected devices. (You must be connected to the network)
