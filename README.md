@@ -1,4 +1,4 @@
-![image](https://github.com/babylard/NetScan/assets/75695872/1beaa4e8-5edf-4253-af52-c5c98cd82cbe)# NetScan
+# NetScan
 A lightweight Network scanner which lists IPs and MAC Addresses of devices on a specified network.
 
 ![image](https://github.com/babylard/NetScan/assets/75695872/72d2d1e2-0c7d-4a9a-9a57-45d9376f5abb)
@@ -12,6 +12,8 @@ Also as of 0.0.2, I have also found that sometimes results wont display when usi
 
 For more information on vunrebilities of using WinPcap you can visit their website. 
 If you're using macOS, then NetScan may work just fine out of the box as is. But if not I reccomend using Nmap.
+
+Downloads will be listed below.
 
 # Packet Capturing software Downloads
 Npcap: https://npcap.com/#download
