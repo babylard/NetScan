@@ -1,17 +1,14 @@
-# NetScan
-A lightweight Network scanner which lists IPs and MAC Addresses of all devices on a specified network.
+![image](https://github.com/babylard/NetScan/assets/75695872/1beaa4e8-5edf-4253-af52-c5c98cd82cbe)# NetScan
+A lightweight Network scanner which lists IPs and MAC Addresses of devices on a specified network.
 
-GUI version:
+![image](https://github.com/babylard/NetScan/assets/75695872/72d2d1e2-0c7d-4a9a-9a57-45d9376f5abb)
 
-![image](https://github.com/babylard/NetScan/assets/75695872/e55ec9a1-9570-4570-9b43-06f1ff43c7de)
+To begin, input the IP of the router you would like to scan for connected devices (You must be connected to the network) And Input the Range. By default the range will be set to 24.
 
-Terminal version:
-
-![Blur](https://github.com/babylard/NetScan/assets/75695872/3ab0bdab-5e68-4040-bb49-689301dbe542)
-
-To begin, input the IP of the router you would like to scan for connected devices. (You must be connected to the network)
 # Dependencies
 You may require WinPcap, Npcap, or other Packet Capturing software for the program to work properly. I highly reccomend Npcap over WinPcap, as WinPcap has ceased development a very long time ago. But if you are unable to get it to work with Npcap, WinPcap will work just fine if you have to. 
+
+Also as of 0.0.2, I have also found that sometimes results wont display when using WinPcap, but it seems to work ok after retrying a few times for some reason.
 
 For more information on vunrebilities of using WinPcap you can visit their website. 
 If you're using macOS, then NetScan may work just fine out of the box as is. But if not I reccomend using Nmap.
