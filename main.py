@@ -1,4 +1,5 @@
 import scapy.all as scapy
+import re
 import datetime
 import itertools
 import threading
@@ -9,6 +10,7 @@ import os
 
 
 router = input("Input IP of the router you would like to scan: ")
+range = input("Range (24 is reccomended): ")
 done = False
 
 def animate():
@@ -18,7 +20,7 @@ def animate():
         sys.stdout.write('\rSending ARP requests (Takes longer with many devices on network)   ' + c)
         sys.stdout.flush()
         time.sleep(0.1)
-    sys.stdout.write('\n\rDone     ')
+    sys.stdout.write('\n\rDone     \nPress Enter to exit...')
 
 t = threading.Thread(target=animate)
 
@@ -32,7 +34,7 @@ def scan(ip):
         print(element[1].psrc + "\t\t" + element[1].hwsrc)
 
 t.start()
-scan(router + "/24")
+scan(router + "/" + range)
 done = True
 
 input("")
