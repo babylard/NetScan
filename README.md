@@ -13,6 +13,8 @@ I have also found that sometimes results wont display when using WinPcap, but it
 For more information on vunrebilities of using WinPcap you can visit their website. 
 If you're using macOS, then NetScan may work just fine out of the box as is. But if not I reccomend using Nmap.
 
+If you are using a .py file alone rather than a .exe from the releases, be sure to run `pip install -r requirements.txt` to install all needed modules to function.
+
 Downloads will be listed below.
 
 # Packet Capturing software Downloads
