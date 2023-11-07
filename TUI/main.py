@@ -28,9 +28,7 @@ def scan(ip):
         ip = element[1].psrc
         mac = element[1].hwsrc
         device_type = get_device_type(mac)
-        # Perform OS fingerprinting using SYN packets
         try:
-            # Send SYN packet to port 80 (you can use other ports for more accuracy)
             syn_packet = scapy.IP(dst=ip) / scapy.TCP(dport=80, flags="S")
             response = scapy.sr1(syn_packet, timeout=1, verbose=False)
             if response:

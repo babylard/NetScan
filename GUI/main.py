@@ -1,9 +1,11 @@
+# Imports
 import PySimpleGUI as sg
 from scapy.all import *
 import scapy.all as scapy
 from manuf import manuf
 import re
 
+# Varibles
 hostname = conf.route.route("0.0.0.0")[2]
 show_short_oui = True
 
@@ -16,7 +18,7 @@ def get_device_type(mac_address):
         manufacturer = p.get_manuf_long(mac_address)
     return manufacturer or "Unknown"
 
-
+# Network stuff
 def scan(ip):
     print("Sending ARP requests...")
     arp_request = scapy.ARP(pdst=ip)
@@ -54,10 +56,10 @@ def scan(ip):
 
 
 def is_valid_mac(mac_address):
-    # Regular expression to validate MAC address format
     mac_pattern = r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$'
     return re.match(mac_pattern, mac_address) is not None
 
+# GUI
 sg.theme('Topanga') 
 
 def help():
@@ -65,7 +67,6 @@ def help():
         [sg.Text('Known issues:')],
         [sg.Text('    1. No results? I could be wrong but I believe this is occurs when WinPcap is used. This is not an issue with NetScan, but rather WinPcap.')],
         [sg.Text('       This can also occur because the IP Range you entered was Invalid. 24 is set by default which should work just fine.')],
-        [sg.Text('       For more information please view the README.MD in the Repository')],
         [sg.Text('')],
         [sg.Text("    2. OUI Manufacturer information is only 8 characters long. This issue has been resolved as of 0.0.4, however I thought this would also")],
         [sg.Text("       make a good feature. So there is now a checkbox located at the top to show Short OUIs, or long OUIs.")],
@@ -83,7 +84,7 @@ def help():
 
 
 def main():
-    global show_short_oui  # Declare the global variable in the main function
+    global show_short_oui
     layout = [  
         [sg.Text('Router IP'), sg.Text("                     IP Range"), sg.Checkbox("Short OUIs", key='OUI', default=True)],
         [sg.Input(hostname, key='_IN_', size=(20,1)), sg.Input("24", key="-IN-", size=(10,1))],
@@ -105,4 +106,5 @@ def main():
 
     window.Close()
 
+# Program go brr
 main()
