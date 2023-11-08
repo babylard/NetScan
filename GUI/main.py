@@ -4,10 +4,12 @@ from scapy.all import *
 import scapy.all as scapy
 from manuf import manuf
 import re
+import datetime
 
 # Varibles
 hostname = conf.route.route("0.0.0.0")[2]
 show_short_oui = True
+now = datetime.datetime.now()
 
 def get_device_type(mac_address):
     global show_short_oui
@@ -42,6 +44,12 @@ def scan(ip):
                     os_info = "Linux/Unix"
                 elif response.haslayer(scapy.TCP) and response.getlayer(scapy.TCP).flags == 0x14:
                     os_info = "Windows"
+                elif response.haslayer(scapy.TCP) and response.getlayer(scapy.TCP).flags == 0x18:
+                    os_info = "Mac OS"
+                elif "Android" in response.summary():
+                    os_info = "Android"
+                elif "iOS" in response.summary():
+                    os_info = "iOS"
                 else:
                     os_info = "Unknown"
             else:
@@ -53,6 +61,7 @@ def scan(ip):
         else:
             print(f"{ip}\t\t{mac}\t\t{device_type}\t\t\t\t{os_info}\t\t")
     print("\nDone\n----------------------------------------------------------------------------------------------------------------------------------------")
+    print("Finished at " + str(now))
 
 
 def is_valid_mac(mac_address):
@@ -86,20 +95,22 @@ def help():
 def main():
     global show_short_oui
     layout = [  
-        [sg.Text('Router IP'), sg.Text("                     IP Range"), sg.Checkbox("Short OUIs", key='OUI', default=True)],
+        [sg.Text('Router IP'), sg.Text("                     IP Range"), sg.Checkbox("Short OUIs", key='OUI', default=False)],
         [sg.Input(hostname, key='_IN_', size=(20,1)), sg.Input("24", key="-IN-", size=(10,1))],
         [sg.Output(size=(85,25), key="-OUT-")],
-        [sg.Button('Scan'), sg.Button('Exit'), sg.Button('Help')]
+        [sg.Button('Scan'), sg.Button('Exit'), sg.Button('Help'), sg.Button("Clear output", key="-CLEAR-")]
     ]
 
     window = sg.Window('NetScan', layout)
 
     while True:
         event, values = window.Read()
-        if event in (None, 'Exit'):
+        if event in 'Exit':
             break
-        if event in (None, 'Help'):
+        if event in 'Help':
             help()
+        if event in "-CLEAR-":
+            window.FindElement("-OUT-").Update('')
         elif event == 'Scan':
             show_short_oui = values['OUI']
             scan(ip=values['_IN_'] + "/" + values['-IN-'])

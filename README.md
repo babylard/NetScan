@@ -19,7 +19,7 @@ Please note that you are only required to have one of these, or other software w
 # Usage
 To begin, input the IP of the router you would like to scan for connected devices (You must be connected to the network, of course.) Along with the range. 
 
-![python_lZQGK8S0eq](https://github.com/babylard/NetScan/assets/75695872/903b6d31-08b4-44e5-afcf-d8c5cc97d00e)
+![python_G0p6xfFfVJ](https://github.com/babylard/NetScan/assets/75695872/f3169405-0b50-4607-b1c8-f3ec8d7c303b)
 
 Both fields will be properly set by default as of 0.0.3, then press "Scan".
 The program may freeze for a brief moment, as it is retrieving many details from devices. Afterwards you should have a neat looking list of IP's, MAC Addresses, OS information, etc.
