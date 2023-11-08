@@ -1,7 +1,7 @@
 # NetScan
 A lightweight Network scanner which lists IPs and MAC Addresses of devices on a specified network.
 
-![image](https://github.com/babylard/NetScan/assets/75695872/202329ba-96cd-4c06-8f1b-ef160d3378b2)
+![image](https://github.com/babylard/NetScan/assets/75695872/1b2373ae-0785-4666-9eca-9946bbb422a6)
 
 # Dependencies
 You may require WinPcap, Npcap, or other Packet Capturing software for the program to work properly. I highly reccomend Npcap over WinPcap, as WinPcap has ceased development a very long time ago. But if you dont care for security, WinPcap will work just fine.
