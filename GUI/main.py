@@ -3,7 +3,6 @@ import PySimpleGUI as sg
 from scapy.all import *
 import scapy.all as scapy
 from manuf import manuf
-import re
 import datetime
 
 # Varibles
