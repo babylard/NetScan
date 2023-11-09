@@ -63,11 +63,6 @@ def scan(ip):
     print("\nDone\n----------------------------------------------------------------------------------------------------------------------------------------")
     print("Finished at " + str(now))
 
-
-def is_valid_mac(mac_address):
-    mac_pattern = r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$'
-    return re.match(mac_pattern, mac_address) is not None
-
 # GUI
 sg.theme('Topanga') 
 
