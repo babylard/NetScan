@@ -10,6 +10,8 @@ hostname = conf.route.route("0.0.0.0")[2]
 show_short_oui = True
 now = datetime.datetime.now()
 
+# Network stuff
+
 def get_device_type(mac_address):
     global show_short_oui
     p = manuf.MacParser()
@@ -19,7 +21,6 @@ def get_device_type(mac_address):
         manufacturer = p.get_manuf_long(mac_address)
     return manufacturer or "Unknown"
 
-# Network stuff
 def scan(ip):
     print("Sending ARP requests...")
     arp_request = scapy.ARP(pdst=ip)
@@ -72,9 +73,10 @@ def help():
         [sg.Text('       This can also occur because the IP Range you entered was Invalid. 24 is set by default which should work just fine.')],
         [sg.Text('')],
         [sg.Text("    2. OUI Manufacturer information is only 8 characters long. This issue has been resolved as of 0.0.4, however I thought this would also")],
-        [sg.Text("       make a good feature. So there is now a checkbox located at the top to show Short OUIs, or long OUIs.")],
+        [sg.Text("       make a good feature. So there is now a checkbox located at the top to show Short OUIs, or long OUIs. If you want the full version,")],
+        [sg.Text("       make sure you've unchecked the box.")],
         [sg.Text('')],
-        [sg.Text('Please report any bugs or issues you may find to williamchiozza@protonmail.com')]
+        [sg.Text('Please report any bugs or issues you may find to williamchiozza@protonmail.com, and view the Documentation for more information.')]
     ]
 
     help_window = sg.Window('NetScan Help', layout2, resizable=True)
