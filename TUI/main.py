@@ -1,6 +1,7 @@
 import scapy.all as scapy
 import manuf
 import datetime
+import socket
 
 
 router = input("Input IP of the router you would like to scan: ")
@@ -13,22 +14,32 @@ def get_device_type(mac_address):
     manufacturer = p.get_manuf_long(mac_address)
     return manufacturer or "Unknown"
 
+def get_hostname(ip):
+    try:
+        hostname, _, _ = socket.gethostbyaddr(ip)
+        return hostname
+    except socket.herror as e:
+        return "Unknown"
+
 def scan(ip):
     print("Sending ARP requests...")
     arp_request = scapy.ARP(pdst=ip)
     broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
     arp_request_broadcast = broadcast / arp_request
     answered_list = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]
-    
 
-    print("\nIP\t\tMAC Address\t\tManufacturer\t\t\t\tOS\n----------------------------------------------------------------------------------------------------------------------------------------")
-    for element in answered_list:
-        ip = element[1].psrc
-        mac = element[1].hwsrc
+    print("\nIP\t\tMAC Address\t\tManufacturer\t\t\t\tOS\t\tHostname\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+    
+    for answered_packet in answered_list:
+        ip = answered_packet[1].psrc
+        mac = answered_packet[1].hwsrc
         device_type = get_device_type(mac)
+        os_info = "Unknown"
+
         try:
             syn_packet = scapy.IP(dst=ip) / scapy.TCP(dport=80, flags="S")
             response = scapy.sr1(syn_packet, timeout=1, verbose=False)
+
             if response:
                 if response.haslayer(scapy.TCP) and response.getlayer(scapy.TCP).flags == 0x12:
                     os_info = "Linux/Unix"
@@ -40,14 +51,13 @@ def scan(ip):
                     os_info = "Android"
                 elif "iOS" in response.summary():
                     os_info = "iOS"
-                else:
-                    os_info = "Unknown"
-            else:
-                os_info = "Unknown"
         except:
             os_info = "Error"
-        print(f"{ip}\t\t{mac}\t\t{device_type}\t\t\t\t{os_info}\t\t")
-    print("\nDone\n----------------------------------------------------------------------------------------------------------------------------------------")
+
+        host_name = get_hostname(ip)
+        print(f"{ip}\t\t{mac}\t\t{device_type}\t\t\t\t{os_info}\t\t{host_name}")
+
+    print("\nDone\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("Finished at " + str(now))
 
 scan(router + "/" + range)

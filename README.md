@@ -1,7 +1,7 @@
 # NetScan
 A lightweight Network scanner which lists IPs and MAC Addresses of devices on a specified network.
 
-![image](https://github.com/babylard/NetScan/assets/75695872/1b2373ae-0785-4666-9eca-9946bbb422a6)
+![image](https://github.com/babylard/NetScan/assets/75695872/105273d8-7dc2-486f-aad3-229812b58880)
 
 # Dependencies
 You may require WinPcap, Npcap, or other Packet Capturing software for the program to work properly. I highly reccomend Npcap over WinPcap, as WinPcap has ceased development a very long time ago. But if you dont care for security, WinPcap will work just fine.
@@ -18,9 +18,6 @@ Please note that you are only required to have one of these, or other software w
 
 # Usage
 To begin, input the IP of the router you would like to scan for connected devices (You must be connected to the network, of course.) Along with the range. 
-
-![python_G0p6xfFfVJ](https://github.com/babylard/NetScan/assets/75695872/f3169405-0b50-4607-b1c8-f3ec8d7c303b)
-
 Both fields will be properly set by default as of 0.0.3, then press "Scan".
 The program may freeze for a brief moment, as it is retrieving many details from devices. Afterwards you should have a neat looking list of IP's, MAC Addresses, OS information, etc.
 
