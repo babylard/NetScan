@@ -3,15 +3,26 @@ import manuf
 import datetime
 import socket
 
-
+show_short_oui = True
 router = input("Input IP of the router you would like to scan: ")
 range = input("Range (24 is reccomended): ")
+ouiquestion = input("Short OUIs? (y/n): ")
+
+if ouiquestion == "y":
+    pass
+else:
+    show_short_oui = False
+
 done = False
 now = datetime.datetime.now()
 
 def get_device_type(mac_address):
+    global show_short_oui
     p = manuf.MacParser()
-    manufacturer = p.get_manuf_long(mac_address)
+    if show_short_oui:
+        manufacturer = p.get_manuf(mac_address)
+    else:
+        manufacturer = p.get_manuf_long(mac_address)
     return manufacturer or "Unknown"
 
 def get_hostname(ip):
@@ -55,7 +66,7 @@ def scan(ip):
             os_info = "Error"
 
         host_name = get_hostname(ip)
-        print(f"{ip}\t\t{mac}\t\t{device_type}\t\t\t\t{os_info}\t\t{host_name}")
+        print(f"{ip}\t\t\t{mac}\t\t{device_type}\t\t\t\t{os_info}\t\t{host_name}")
 
     print("\nDone\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
     print("Finished at " + str(now))

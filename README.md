@@ -19,7 +19,7 @@ Please note that you are only required to have one of these, or other software w
 # Usage
 To begin, input the IP of the router you would like to scan for connected devices (You must be connected to the network, of course.) Along with the range. 
 Both fields will be properly set by default as of 0.0.3, then press "Scan".
-The program may freeze for a brief moment, as it is retrieving many details from devices. Afterwards you should have a neat looking list of IP's, MAC Addresses, OS information, etc.
+The output will begin listing devices it finds in realtime, and should let you know when it is done. Afterwards you should have a neat looking list of IP's, MAC Addresses, OS information, etc.
 
 
 
