@@ -1,5 +1,5 @@
-# Imports
-import PySimpleGUI as sg
+import tkinter as tk
+from tkinter import scrolledtext, messagebox
 from scapy.all import *
 import scapy.all as scapy
 from scapy.layers.dot11 import RadioTap, Dot11, Dot11Deauth
@@ -7,15 +7,28 @@ from manuf import manuf
 import datetime
 import socket
 import threading
+import sys
 
-# Varibles
+# Variables
 hostname = conf.route.route("0.0.0.0")[2]
 show_short_oui = True
 now = datetime.datetime.now()
 stop_deauth_event = threading.Event()
 deauth_thread = None
 
-# Network stuff
+# Custom class to redirect stdout to Tkinter text widget
+class TextRedirector:
+    def __init__(self, widget):
+        self.widget = widget
+
+    def write(self, text):
+        self.widget.insert(tk.END, text)
+        self.widget.see(tk.END)
+
+    def flush(self):
+        pass
+
+# Network functions
 def deauth_function(target_mac, bssid, count=1):
     try:
         global stop_deauth_event
@@ -114,86 +127,97 @@ def scan_thread(ip):
     scanning_thread.start()
 
 # GUI
-sg.theme('Topanga')
-
-def help():
-    layout2 = [
-        [sg.Text('FAQ:')],
-        [sg.Text('    1. No results? I could be wrong but I believe this is occurs when WinPcap is used.')],
-        [sg.Text('       This can also occur because the IP Range you entered was Invalid. 24 is set by default which should work just fine.')],
-        [sg.Text('')],
-        [sg.Text("    2. OUI Manufacturer information is only 8 characters long. This issue has been resolved as of 0.0.4, however I thought this would also")],
-        [sg.Text("       make a good feature. So there is now a checkbox located at the top to show Short OUIs, or long OUIs. If you want the full version,")],
-        [sg.Text("       make sure you've unchecked the box.")],
-        [sg.Text('')],
-        [sg.Text('Please report any issues you may find to williamchiozza@protonmail.com, and view the Documentation for more information.')]
-    ]
-
-    help_window = sg.Window('NetScan Help', layout2, resizable=True)
-
-    while True:
-        event, values = help_window.Read()
-        if event in (None, "Exit"):
-            break
-    help_window.Close()
+def help_window():
+    help_win = tk.Toplevel(root)
+    help_win.title("NetScan Help")
+    help_win.geometry("600x400")
+    
+    help_text = (
+        "FAQ:\n"
+        "1. No results? This can occur when WinPcap is used or because the IP Range you entered was invalid. "
+        "24 is set by default which should work just fine.\n\n"
+        "2. OUI Manufacturer information is only 8 characters long. This issue has been resolved as of 0.0.4, "
+        "however, it can also be a feature. There is now a checkbox located at the top to show Short OUIs or long OUIs. "
+        "If you want the full version, make sure you've unchecked the box.\n\n"
+        "Please report any issues you may find to williamchiozza@protonmail.com, and view the documentation for more information."
+    )
+    
+    help_label = tk.Label(help_win, text=help_text, justify=tk.LEFT)
+    help_label.pack(pady=10, padx=10)
 
 def deauth_window():
-    layout3 = [
-        [sg.Text("Target MAC:                    Router MAC:")],
-        [sg.Input(key="-TARGET-", size=(20, 1)), sg.Input(key="-ROUTER-", size=(20, 1))],
-        [sg.Output(size=(39, 25), key="-OUT-")],
-        [sg.Button("Deauth", key="-DEAUTH-"), sg.Button("Stop Deauth", key="-STOP-")]
-    ]
+    def on_deauth():
+        target_mac = target_entry.get()
+        router_mac = router_entry.get()
+        if target_mac and router_mac:
+            start_deauth(target_mac=target_mac, bssid=router_mac)
+            deauth_output.insert(tk.END, f"Deauthing {target_mac}, this lasts about 10 seconds and will be looped every 10 seconds.\n--------------------------------------------------------------------\n")
+        else:
+            deauth_output.insert(tk.END, "Values not set. Please enter details in both Target MAC and Router MAC. If you need any help, feel free to read the documentation.\n")
+    
+    def on_stop_deauth():
+        deauth_output.insert(tk.END, "Stopped Deauth.\n")
+        stop_deauth_thread()
 
-    deauth_win = sg.Window("Deauth Window", layout3)
+    deauth_win = tk.Toplevel(root)
+    deauth_win.title("Deauth Window")
+    
+    tk.Label(deauth_win, text="Target MAC:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+    tk.Label(deauth_win, text="Router MAC:").grid(row=0, column=1, padx=5, pady=5, sticky="w")
+    
+    target_entry = tk.Entry(deauth_win)
+    router_entry = tk.Entry(deauth_win)
+    target_entry.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+    router_entry.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+    
+    deauth_output = scrolledtext.ScrolledText(deauth_win, width=50, height=20)
+    deauth_output.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky="w")
+    
+    tk.Button(deauth_win, text="Deauth", command=on_deauth).grid(row=3, column=0, padx=5, pady=5, sticky="w")
+    tk.Button(deauth_win, text="Stop Deauth", command=on_stop_deauth).grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
-    while True:
-        event, values = deauth_win.Read()
+def main_window():
+    global root, output_text
+    root = tk.Tk()
+    root.title("NetScan")
+    root.geometry("800x600")
 
-        if event in (None, "Exit"):
-            break
-        elif event in '-DEAUTH-':
-            target_mac = values["-TARGET-"]
-            router_mac = values["-ROUTER-"]
+    def on_scan_network():
+        global show_short_oui
+        show_short_oui = oui_var.get()
+        ip = ip_entry.get() + "/" + range_entry.get()
+        scan_thread(ip)
+    
+    def on_clear_output():
+        output_text.delete(1.0, tk.END)
 
-            if target_mac and router_mac:
-                start_deauth(target_mac=target_mac, bssid=router_mac)
-                print(f"Deauthing {target_mac}, this lasts about 10 seconds and will be looped every 10 seconds.\n--------------------------------------------------------------------")
-            else:
-                deauth_win.FindElement("-OUT-").Update('')
-                print("Values not set. Please enter details in both Target MAC and Router MAC. If you need any help feel free to read the Documentation.")
-        elif event in "-STOP-":
-            deauth_win.FindElement("-OUT-").Update('')
-            stop_deauth_thread()
+    tk.Label(root, text="Router IP").grid(row=0, column=0, padx=1, pady=1, sticky="w")
+    tk.Label(root, text="IP Range").grid(row=0, column=1, padx=1, pady=1, sticky="w")
+    
+    ip_entry = tk.Entry(root)
+    ip_entry.insert(0, hostname)
+    ip_entry.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+    
+    range_entry = tk.Entry(root, width=10)
+    range_entry.insert(0, "24")
+    range_entry.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+    
+    oui_var = tk.BooleanVar()
+    oui_check = tk.Checkbutton(root, text="Short OUIs", variable=oui_var)
+    oui_check.grid(row=0, column=2, padx=1, pady=1, sticky="w")
+    
+    output_text = scrolledtext.ScrolledText(root, width=95, height=25)
+    output_text.grid(row=2, column=0, columnspan=3, padx=1, pady=1, sticky="w")
+    
+    # Redirect stdout to the scrolledtext widget
+    sys.stdout = TextRedirector(output_text)
+    
+    tk.Button(root, text="Scan Network", command=on_scan_network).grid(row=3, column=0, padx=1, pady=1, sticky="w")
+    tk.Button(root, text="Deauth a device", command=deauth_window).grid(row=3, column=1, padx=1, pady=1, sticky="w")
+    tk.Button(root, text="Help", command=help_window).grid(row=3, column=2, padx=1, pady=1, sticky="w")
+    tk.Button(root, text="Clear Output", command=on_clear_output).grid(row=4, column=0, columnspan=3, padx=1, pady=1, sticky="w")
 
-    deauth_win.Close()
+    root.mainloop()
 
-def main():
-    global show_short_oui
-    layout = [  
-        [sg.Text('Router IP'), sg.Text("                     IP Range"), sg.Checkbox("Short OUIs", key='OUI', default=False)],
-        [sg.Input(hostname, key='_IN_', size=(20,1)), sg.Input("24", key="-IN-", size=(10,1))],
-        [sg.Output(size=(95,25), key="-OUT-")],
-        [sg.Button('Scan Network'), sg.Button('Deauth a device'), sg.Button('Help'), sg.Button("Clear output", key="-CLEAR-"), sg.Button('Exit')]
-    ]
-
-    window = sg.Window('NetScan', layout)
-
-    while True:
-        event, values = window.Read()
-        if event in (None, "Exit"):
-            break
-        elif event in 'Help':
-            help()
-        elif event in "-CLEAR-":
-            window.FindElement("-OUT-").Update('')
-        elif event in 'Deauth a device':
-            deauth_window()
-        elif event == 'Scan Network':
-            show_short_oui = values['OUI']
-            scan_thread(ip=(values['_IN_'] + "/" + values['-IN-']))
-
-    window.Close()
-
-# Program go brr
-main()
+if __name__ == "__main__":
+    main_window()
