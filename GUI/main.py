@@ -8,6 +8,7 @@ import datetime
 import socket
 import threading
 import sys
+import webbrowser
 
 # Variables
 hostname = conf.route.route("0.0.0.0")[2]
@@ -84,9 +85,9 @@ def scan(ip):
     answered_list = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]
 
     if show_short_oui:
-        print("\nIP\t\tMAC Address\t\tManufacturer\t\tOS\t\tHostname\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+        print("\nIP\t\tMAC Address\t\tManufacturer\t\tOS\t\tHostname\n-----------------------------------------------------------------------------------------------")
     else:
-        print("\nIP\t\tMAC Address\t\tManufacturer\t\t\t\tOS\t\tHostname\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+        print("\nIP\t\tMAC Address\t\tManufacturer\t\t\t\tOS\t\tHostname\n----------------------------------------------------------------------------------------------")
     
     for answered_packet in answered_list:
         ip = answered_packet[1].psrc
@@ -119,7 +120,7 @@ def scan(ip):
         else:
             print(f"{ip}\t\t{mac}\t\t{device_type}\t\t\t\t{os_info}\t\t{host_name}")
 
-    print("\nDone\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+    print("\nDone\n-----------------------------------------------------------------------------------------------")
     print("Finished at " + str(now))
 
 def scan_thread(ip):
@@ -127,23 +128,9 @@ def scan_thread(ip):
     scanning_thread.start()
 
 # GUI
-def help_window():
-    help_win = tk.Toplevel(root)
-    help_win.title("NetScan Help")
-    help_win.geometry("600x400")
-    
-    help_text = (
-        "FAQ:\n"
-        "1. No results? This can occur when WinPcap is used or because the IP Range you entered was invalid. "
-        "24 is set by default which should work just fine.\n\n"
-        "2. OUI Manufacturer information is only 8 characters long. This issue has been resolved as of 0.0.4, "
-        "however, it can also be a feature. There is now a checkbox located at the top to show Short OUIs or long OUIs. "
-        "If you want the full version, make sure you've unchecked the box.\n\n"
-        "Please report any issues you may find to williamchiozza@protonmail.com, and view the documentation for more information."
-    )
-    
-    help_label = tk.Label(help_win, text=help_text, justify=tk.LEFT)
-    help_label.pack(pady=10, padx=10)
+
+def docs():
+    webbrowser.open_new_tab("https://github.com/babylard/NetScan/blob/main/Documentation/docs.ipynb")
 
 def deauth_window():
     def on_deauth():
@@ -214,7 +201,7 @@ def main_window():
     
     tk.Button(root, text="Scan Network", command=on_scan_network).grid(row=3, column=0, padx=1, pady=1, sticky="w")
     tk.Button(root, text="Deauth a device", command=deauth_window).grid(row=3, column=1, padx=1, pady=1, sticky="w")
-    tk.Button(root, text="Help", command=help_window).grid(row=3, column=2, padx=1, pady=1, sticky="w")
+    tk.Button(root, text="Help", command=docs).grid(row=3, column=2, padx=1, pady=1, sticky="w")
     tk.Button(root, text="Clear Output", command=on_clear_output).grid(row=4, column=0, columnspan=3, padx=1, pady=1, sticky="w")
 
     root.mainloop()
