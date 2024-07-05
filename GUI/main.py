@@ -1,5 +1,5 @@
-import tkinter as tk
-from tkinter import scrolledtext, messagebox
+import customtkinter as ctk
+from tkinter import messagebox
 from scapy.all import *
 import scapy.all as scapy
 from scapy.layers.dot11 import RadioTap, Dot11, Dot11Deauth
@@ -23,8 +23,8 @@ class TextRedirector:
         self.widget = widget
 
     def write(self, text):
-        self.widget.insert(tk.END, text)
-        self.widget.see(tk.END)
+        self.widget.insert(ctk.END, text)
+        self.widget.see(ctk.END)
 
     def flush(self):
         pass
@@ -85,9 +85,9 @@ def scan(ip):
     answered_list = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]
 
     if show_short_oui:
-        print("\nIP\t\tMAC Address\t\tManufacturer\t\tOS\t\tHostname\n-----------------------------------------------------------------------------------------------")
+        print("\nIP\t\tMAC Address\t\tManufacturer\t\tOS\t\tHostname\n---------------------------------------------------------------------------------------------------------------------------------")
     else:
-        print("\nIP\t\tMAC Address\t\tManufacturer\t\t\t\tOS\t\tHostname\n----------------------------------------------------------------------------------------------")
+        print("\nIP\t\tMAC Address\t\tManufacturer\t\t\t\tOS\t\tHostname\n-----------------------------------------------------------------------------------------------------------------------------------------------------------")
     
     for answered_packet in answered_list:
         ip = answered_packet[1].psrc
@@ -120,7 +120,7 @@ def scan(ip):
         else:
             print(f"{ip}\t\t{mac}\t\t{device_type}\t\t\t\t{os_info}\t\t{host_name}")
 
-    print("\nDone\n-----------------------------------------------------------------------------------------------")
+    print("\nDone\n------------------------------------------------------------------------------------------------------------------------")
     print("Finished at " + str(now))
 
 def scan_thread(ip):
@@ -128,6 +128,9 @@ def scan_thread(ip):
     scanning_thread.start()
 
 # GUI
+
+ctk.set_appearance_mode("system")
+ctk.set_default_color_theme("green")
 
 def docs():
     webbrowser.open_new_tab("https://github.com/babylard/NetScan/blob/main/Documentation/docs.ipynb")
@@ -138,71 +141,79 @@ def deauth_window():
         router_mac = router_entry.get()
         if target_mac and router_mac:
             start_deauth(target_mac=target_mac, bssid=router_mac)
-            deauth_output.insert(tk.END, f"Deauthing {target_mac}, this lasts about 10 seconds and will be looped every 10 seconds.\n--------------------------------------------------------------------\n")
+            deauth_output.insert(ctk.END, f"Deauthing {target_mac}, this lasts about 10 seconds and will be looped every 10 seconds.\n--------------------------------------------------------------------\n")
         else:
-            deauth_output.insert(tk.END, "Values not set. Please enter details in both Target MAC and Router MAC. If you need any help, feel free to read the documentation.\n")
+            deauth_output.insert(ctk.END, "Values not set. Please enter details in both Target MAC and Router MAC. If you need any help, feel free to read the documentation.\n")
     
     def on_stop_deauth():
-        deauth_output.insert(tk.END, "Stopped Deauth.\n")
+        deauth_output.insert(ctk.END, "Stopped Deauth.\n")
         stop_deauth_thread()
 
-    deauth_win = tk.Toplevel(root)
+    deauth_win = ctk.CTkToplevel(root)
     deauth_win.title("Deauth Window")
     
-    tk.Label(deauth_win, text="Target MAC:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-    tk.Label(deauth_win, text="Router MAC:").grid(row=0, column=1, padx=5, pady=5, sticky="w")
+    ctk.CTkLabel(deauth_win, text="Target MAC:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+    ctk.CTkLabel(deauth_win, text="Router MAC:").grid(row=0, column=1, padx=5, pady=5, sticky="w")
     
-    target_entry = tk.Entry(deauth_win)
-    router_entry = tk.Entry(deauth_win)
+    target_entry = ctk.CTkEntry(deauth_win)
+    router_entry = ctk.CTkEntry(deauth_win)
     target_entry.grid(row=1, column=0, padx=5, pady=5, sticky="w")
     router_entry.grid(row=1, column=1, padx=5, pady=5, sticky="w")
     
-    deauth_output = scrolledtext.ScrolledText(deauth_win, width=50, height=20)
+    deauth_output = ctk.CTkTextbox(deauth_win, width=450, height=300)
     deauth_output.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky="w")
     
-    tk.Button(deauth_win, text="Deauth", command=on_deauth).grid(row=3, column=0, padx=5, pady=5, sticky="w")
-    tk.Button(deauth_win, text="Stop Deauth", command=on_stop_deauth).grid(row=3, column=1, padx=5, pady=5, sticky="w")
+    ctk.CTkButton(deauth_win, text="Deauth", command=on_deauth).grid(row=3, column=0, padx=5, pady=5, sticky="w")
+    ctk.CTkButton(deauth_win, text="Stop Deauth", command=on_stop_deauth).grid(row=3, column=1, padx=5, pady=5, sticky="w")
+
+def validate_numeric_input(value):
+    return all(char.isdigit() or char == "." for char in value) or value == ""
 
 def main_window():
     global root, output_text
-    root = tk.Tk()
+    root = ctk.CTk()
     root.title("NetScan")
     root.geometry("800x600")
+
+    # Register the validation function
+    validate_command = root.register(validate_numeric_input)
 
     def on_scan_network():
         global show_short_oui
         show_short_oui = oui_var.get()
         ip = ip_entry.get() + "/" + range_entry.get()
         scan_thread(ip)
-    
-    def on_clear_output():
-        output_text.delete(1.0, tk.END)
 
-    tk.Label(root, text="Router IP").grid(row=0, column=0, padx=1, pady=1, sticky="w")
-    tk.Label(root, text="IP Range").grid(row=0, column=1, padx=1, pady=1, sticky="w")
-    
-    ip_entry = tk.Entry(root)
-    ip_entry.insert(0, hostname)
+    def on_clear_output():
+        output_text.delete(1.0, ctk.END)
+
+    ctk.CTkLabel(root, text="Router IP").grid(row=0, column=0, padx=1, pady=1, sticky="w")
+    ctk.CTkLabel(root, text="IP Range").grid(row=0, column=1, padx=1, pady=1, sticky="w")
+
+    ip_entry = ctk.CTkEntry(root, width=120)
     ip_entry.grid(row=1, column=0, padx=5, pady=5, sticky="w")
-    
-    range_entry = tk.Entry(root, width=10)
-    range_entry.insert(0, "24")
+    ip_entry.insert(0, hostname)
+    ip_entry.configure(validate="key", validatecommand=(validate_command, "%P"))
+
+    range_entry = ctk.CTkEntry(root, width=40)
     range_entry.grid(row=1, column=1, padx=5, pady=5, sticky="w")
-    
-    oui_var = tk.BooleanVar()
-    oui_check = tk.Checkbutton(root, text="Short OUIs", variable=oui_var)
+    range_entry.insert(0, "24")
+    range_entry.configure(validate="key", validatecommand=(validate_command, "%P"))
+
+    oui_var = ctk.BooleanVar()
+    oui_check = ctk.CTkCheckBox(root, text="Short OUIs", variable=oui_var)
     oui_check.grid(row=0, column=2, padx=1, pady=1, sticky="w")
-    
-    output_text = scrolledtext.ScrolledText(root, width=95, height=25)
+
+    output_text = ctk.CTkTextbox(root, width=750, height=450)
     output_text.grid(row=2, column=0, columnspan=3, padx=1, pady=1, sticky="w")
-    
+
     # Redirect stdout to the scrolledtext widget
     sys.stdout = TextRedirector(output_text)
-    
-    tk.Button(root, text="Scan Network", command=on_scan_network).grid(row=3, column=0, padx=1, pady=1, sticky="w")
-    tk.Button(root, text="Deauth a device", command=deauth_window).grid(row=3, column=1, padx=1, pady=1, sticky="w")
-    tk.Button(root, text="Help", command=docs).grid(row=3, column=2, padx=1, pady=1, sticky="w")
-    tk.Button(root, text="Clear Output", command=on_clear_output).grid(row=4, column=0, columnspan=3, padx=1, pady=1, sticky="w")
+
+    ctk.CTkButton(root, text="Scan Network", command=on_scan_network).grid(row=3, column=0, padx=5, pady=5, sticky="w")
+    ctk.CTkButton(root, text="Deauth a device", command=deauth_window).grid(row=3, column=1, padx=5, pady=5, sticky="w")
+    ctk.CTkButton(root, text="Help", command=docs).grid(row=3, column=2, padx=5, pady=5, sticky="w")
+    ctk.CTkButton(root, text="Clear Output", command=on_clear_output).grid(row=4, column=0, columnspan=3, padx=5, pady=5, sticky="w")
 
     root.mainloop()
 
