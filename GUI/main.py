@@ -1,3 +1,4 @@
+# Imports
 import customtkinter as ctk
 from tkinter import messagebox
 from scapy.all import *
@@ -17,7 +18,7 @@ now = datetime.datetime.now()
 stop_deauth_event = threading.Event()
 deauth_thread = None
 
-# Custom class to redirect stdout to Tkinter text widget
+# Class to redirect stdout to Tkinter text widget
 class TextRedirector:
     def __init__(self, widget):
         self.widget = widget
@@ -173,9 +174,8 @@ def main_window():
     global root, output_text
     root = ctk.CTk()
     root.title("NetScan")
-    root.geometry("800x600")
+    root.geometry("753x600")
 
-    # Register the validation function
     validate_command = root.register(validate_numeric_input)
 
     def on_scan_network():
@@ -207,7 +207,6 @@ def main_window():
     output_text = ctk.CTkTextbox(root, width=750, height=450)
     output_text.grid(row=2, column=0, columnspan=3, padx=1, pady=1, sticky="w")
 
-    # Redirect stdout to the scrolledtext widget
     sys.stdout = TextRedirector(output_text)
 
     ctk.CTkButton(root, text="Scan Network", command=on_scan_network).grid(row=3, column=0, padx=5, pady=5, sticky="w")
