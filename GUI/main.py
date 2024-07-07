@@ -1,6 +1,6 @@
-# Imports
 import customtkinter as ctk
-from tkinter import messagebox
+from tkinter import *
+from tkinter import filedialog
 from scapy.all import *
 import scapy.all as scapy
 from scapy.layers.dot11 import RadioTap, Dot11, Dot11Deauth
@@ -10,6 +10,8 @@ import socket
 import threading
 import sys
 import webbrowser
+import json
+import os
 
 # Variables
 hostname = conf.route.route("0.0.0.0")[2]
@@ -43,9 +45,18 @@ def deauth_function(target_mac, bssid, count=1):
                 scapy.send(deauth_packet, verbose=False)
             
             time.sleep(10)
-            print("Deauthed for 10 Seconds, repeating...")
     except:
         print("Invalid input.")
+
+def portscan_function(ip):
+    for port in range(65535):
+        try:
+            serv = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            serv.bind((ip,port))       
+        except:
+            print('\033[1;32;40m [OPEN]: ', port)
+    
+        serv.close() #close connection
 
 def start_deauth(target_mac, bssid, count=1):
     global deauth_thread
@@ -61,6 +72,15 @@ def stop_deauth_thread():
     global stop_deauth_event
     stop_deauth_event.set()
     print("Stopped Deauth.")
+
+def start_portscan(ip):
+    global portscan_thread
+
+    if portscan_thread and portscan_thread.is_alive():
+        stop_portscan_thread()
+    
+    portscan_thread = threading.Thread(target=portscan_function, args=(ip))
+    portscan_thread.start()
 
 def get_device_type(mac_address):
     global show_short_oui
@@ -129,7 +149,6 @@ def scan_thread(ip):
     scanning_thread.start()
 
 # GUI
-
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("green")
 
@@ -142,7 +161,7 @@ def deauth_window():
         router_mac = router_entry.get()
         if target_mac and router_mac:
             start_deauth(target_mac=target_mac, bssid=router_mac)
-            deauth_output.insert(ctk.END, f"Deauthing {target_mac}, this lasts about 10 seconds and will be looped every 10 seconds.\n--------------------------------------------------------------------\n")
+            deauth_output.insert(ctk.END, f"Deauth loop started.\n--------------------------------------------------------------------\n")
         else:
             deauth_output.insert(ctk.END, "Values not set. Please enter details in both Target MAC and Router MAC. If you need any help, feel free to read the documentation.\n")
     
@@ -171,10 +190,10 @@ def validate_numeric_input(value):
     return all(char.isdigit() or char == "." for char in value) or value == ""
 
 def main_window():
-    global root, output_text
+    global root, output_text, ip_entry, range_entry
     root = ctk.CTk()
     root.title("NetScan")
-    root.geometry("753x600")
+    root.geometry("753x558")
 
     validate_command = root.register(validate_numeric_input)
 
@@ -186,6 +205,58 @@ def main_window():
 
     def on_clear_output():
         output_text.delete(1.0, ctk.END)
+    
+    def donothing():
+        print("Unimplemented")
+
+    def save():
+        # Open a file dialog to choose the save location
+        file_path = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
+        if file_path:
+            # Sanitize file name by removing invalid characters
+            file_name = os.path.basename(file_path)
+            sanitized_file_name = "".join(c for c in file_name if c.isalnum() or c in "_-.")
+            
+            # Add "NetScan_" to the beginning of the file name
+            if not sanitized_file_name.endswith(".json"):
+                sanitized_file_name += ".json"
+            if not sanitized_file_name.startswith("NetScan_"):
+                sanitized_file_name = "NetScan_" + sanitized_file_name
+            
+            # Construct full file path with sanitized file name
+            save_file_path = os.path.join(os.path.dirname(file_path), sanitized_file_name)
+            
+            # Save the current state to a JSON file
+            data = {
+                "router_ip": ip_entry.get(),
+                "ip_range": range_entry.get(),
+                "output": output_text.get(1.0, ctk.END),
+                "short_oui": oui_var.get()
+            }
+            with open(save_file_path, 'w') as file:
+                json.dump(data, file, indent=4)
+            print(f"File saved to {save_file_path}")
+
+    def open_file():
+        # Open a file dialog to choose the file to open
+        file_path = filedialog.askopenfilename(filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
+        if file_path:
+            # Check if the file is valid for your program
+            if not file_path.endswith(".json") or not os.path.basename(file_path).startswith("NetScan_"):
+                print(f"Invalid file selected: {file_path}")
+                return
+            
+            # Load the state from the JSON file
+            with open(file_path, 'r') as file:
+                data = json.load(file)
+                ip_entry.delete(0, ctk.END)
+                ip_entry.insert(0, data["router_ip"])
+                range_entry.delete(0, ctk.END)
+                range_entry.insert(0, data["ip_range"])
+                output_text.delete(1.0, ctk.END)
+                output_text.insert(ctk.END, data["output"])
+                oui_var.set(data.get("short_oui", False))
+            print(f"File loaded from {file_path}")
 
     ctk.CTkLabel(root, text="Router IP").grid(row=0, column=0, padx=1, pady=1, sticky="w")
     ctk.CTkLabel(root, text="IP Range").grid(row=0, column=1, padx=1, pady=1, sticky="w")
@@ -210,10 +281,35 @@ def main_window():
     sys.stdout = TextRedirector(output_text)
 
     ctk.CTkButton(root, text="Scan Network", command=on_scan_network).grid(row=3, column=0, padx=5, pady=5, sticky="w")
-    ctk.CTkButton(root, text="Deauth a device", command=deauth_window).grid(row=3, column=1, padx=5, pady=5, sticky="w")
-    ctk.CTkButton(root, text="Help", command=docs).grid(row=3, column=2, padx=5, pady=5, sticky="w")
-    ctk.CTkButton(root, text="Clear Output", command=on_clear_output).grid(row=4, column=0, columnspan=3, padx=5, pady=5, sticky="w")
 
+    def newfile():
+        on_clear_output()
+        range_entry.delete(0, ctk.END)
+        range_entry.insert(0, "24")
+        ip_entry.delete(0, ctk.END)
+        ip_entry.insert(0, hostname)
+        oui_var.set(False)
+
+    menubar = Menu(root)
+    filemenu = Menu(menubar, tearoff=0)
+    filemenu.add_command(label="New", command=newfile)
+    filemenu.add_command(label="Open", command=open_file)
+    filemenu.add_command(label="Save", command=save)
+    filemenu.add_separator()
+    filemenu.add_command(label="Exit", command=root.quit)
+    menubar.add_cascade(label="File", menu=filemenu)
+
+    helpmenu = Menu(menubar, tearoff=0)
+    helpmenu.add_command(label="Documentation", command=docs)
+    menubar.add_cascade(label="Help", menu=helpmenu)
+
+    viewmenu = Menu(menubar, tearoff=0)
+    viewmenu.add_command(label="Clear", command=on_clear_output)
+    viewmenu.add_command(label="Deauth", command=deauth_window)
+    viewmenu.add_command(label="Port scan", command=donothing)
+    menubar.add_cascade(label="View", menu=viewmenu)
+
+    root.config(menu=menubar)
     root.mainloop()
 
 if __name__ == "__main__":
