@@ -4,7 +4,7 @@ A Network scanner which lists IPs, MAC Addresses, and other information about de
 ![image](https://github.com/babylard/NetScan/assets/75695872/40ad710c-4471-4910-91e3-2e29567890dc)
 
 # Dependencies
-You may require WinPcap, Npcap, or other Packet Capturing software for the program to work properly. These will be listed below.
+You'll probably need WinPcap, Npcap, or other Packet Capturing software for the program to work properly.
 
 Be sure to run `pip install -r requirements.txt` to install all needed modules to function.
 
