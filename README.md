@@ -1,5 +1,5 @@
 # NetScan
-A Network scanner that lists IPs, MAC Addresses, and other information about devices on a network, which can also Deuath devices.
+A Network scanner that lists IPs, MAC Addresses, and other information about devices on a network, which can also Deuath devices on vunreble routers.
 
 ![image](https://github.com/babylard/NetScan/assets/75695872/40ad710c-4471-4910-91e3-2e29567890dc)
 
