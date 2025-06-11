@@ -17,8 +17,8 @@ Be sure to run `pip install -r requirements.txt`
 Please note that you are only required to have one of these, or other software with the same functionality.
 
 # Usage
-To begin, input the IP of the router you would like to scan for connected devices (You must be connected to the network, of course.) Along with the range. 
-Both fields will be properly set by default as of 0.0.3, then press "Scan".
-It will then begin outputting devices it finds in realtime.
+To begin, input the IP of the router you would like to scan for connected devices along with the range. 
+Both fields should be set properly by default. then press Scan.
+It will then begin outputting devices that respond in realtime.
 
 Please view the [Documentation](https://github.com/babylard/NetScan/blob/main/Documentation/docs.ipynb) for more in depth information.
